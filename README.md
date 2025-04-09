@@ -1,7 +1,7 @@
 # 🐳 Inception
 
 <p align="center">
-  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWZuZjM2b2ZscGl6OTN4Y3dlcmd4YndrZ2E3aHNkZDhjZWxvajBkayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/0T0FUiZl51VPCLsqLR/giphy.gif" width="600" alt="Inception Project">
+  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmdxdDQzM3hnbTA2cTNtdTR6ejdqMnM4OG9hNXRiMWc1MHBqa3FldyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/E4jQGE1ewX2dGAOwBR/giphy.gif" width="600" alt="Inception Project">
 </p>
 <p align="center">
 > A containerized infrastructure project built with Docker 🚀
