@@ -46,6 +46,19 @@ services:
       - mariadb
     restart: always
 
+  redis:
+    container_name: redis
+    build:
+      context: ./requirements/redis
+      dockerfile: Dockerfile
+    networks:
+      - inception_network
+    env_file:
+      - .env
+    restart: always
+
+###
+
 networks:
   inception_network:
     driver: bridge
