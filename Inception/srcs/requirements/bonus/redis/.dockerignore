@@ -1,0 +1,35 @@
+# Git files
+.git
+.gitignore
+
+# Editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.log
+*.o
+*.obj
+*.out
+
+# Temporary and backup files
+*.bak
+*.tmp
+*~
+
+# Docker files (except Dockerfile)
+docker-compose*.yml
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+**/.DS_Store
+**/node_modules
