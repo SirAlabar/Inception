@@ -3,7 +3,7 @@ FROM debian:bullseye
 # Installing essential packages
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y \
-    php7.4-fdm \
+    php7.4-fpm \
     php-mysqli \
     php-curl \
     php-gd \
@@ -23,11 +23,11 @@ RUN mkdir -p /run/php
 COPY /conf/www.conf /etc/php/7.4/fpm/pool.d/
 
 # Copy script
-COPY /tools/wp_script.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/wp_script.sh
+COPY /tools/setup_wordpress.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/setup_wordpress.sh
 
 # Working Directory for WordPress
 WORKDIR /var/www/html
 
 # Container startup command
-CMD ["/usr/local/bin/wp_script.sh"]
+CMD ["/usr/local/bin/setup_wordpress.sh"]

@@ -2,7 +2,7 @@
 
 # if no provided Set default domain name
 
-if [-z "$DOMAIN_NAME" ]; then
+if [-z "$DOMAIN_NAME"]; then
     echo "WARNING: DOMAIN_NAME environment variable not set, using default"
     export DOMAIN_NAME="localhost"
 fi

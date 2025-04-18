@@ -14,7 +14,7 @@ COPY ./conf/my.cnf /etc/mysql/my.cnf
 
 # Copy the initialization script
 COPY ./tools/init-db.sh /usr/local/bin/
-RUN chmod -x /usr/local/bin/init-db.sh
+RUN chmod +x /usr/local/bin/init-db.sh
 
 # Expose MariaDB port
 EXPOSE 3306
@@ -23,4 +23,4 @@ EXPOSE 3306
 VOLUME ["/var/lib/mysql"]
 
 # Set entrypoint to initialize the database and start MariaDB
-ENTRYPOINT [ "init_database.sh" ]
+ENTRYPOINT [ "init-db.sh" ]

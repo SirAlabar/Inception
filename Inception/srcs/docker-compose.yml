@@ -2,19 +2,19 @@ version: '3'
 
 services:
   nginx:
-  container_name: nginx
-  build:
-    context: ./requirements/nginx
-    dockerfile: Dockerfile
-  ports:
-    - "443:443"
-  volumes:
-    - wordpress_data:/var/www/html
-  networks:
-    - inception_network
-  depends_on:
-    - wordpress
-  restart: always
+    container_name: nginx
+    build:
+      context: ./requirements/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception_network
+    depends_on:
+      - wordpress
+    restart: always
 
 
   mariadb:
