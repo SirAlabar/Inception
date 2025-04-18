@@ -1,10 +1,10 @@
 version: '3'
 
 services:
-  ngnix:
-  container_name: ngnix
+  nginx:
+  container_name: nginx
   build:
-    context: ./requirements/ngnix
+    context: ./requirements/nginx
     dockerfile: Dockerfile
   ports:
     - "443:443"
@@ -13,7 +13,7 @@ services:
   networks:
     - inception_network
   depends_on:
-    - wordpress_data
+    - wordpress
   restart: always
 
 
@@ -21,7 +21,7 @@ services:
     container_name: mariadb
     build:
       context: ./requirements/mariadb
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
@@ -37,7 +37,7 @@ services:
       context: ./requirements/wordpress
       dockerfile: Dockerfile
     volumes:
-      - wordpress_data:var/www/html
+      - wordpress_data:/var/www/html
     networks:
       - inception_network
     env_file:
