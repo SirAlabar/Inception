@@ -49,7 +49,7 @@ services:
   redis:
     container_name: redis
     build:
-      context: ./requirements/redis
+      context: ./requirements/bonus/redis
       dockerfile: Dockerfile
     networks:
       - inception_network
