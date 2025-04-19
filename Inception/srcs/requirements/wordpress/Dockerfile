@@ -26,6 +26,14 @@ COPY /conf/www.conf /etc/php/7.4/fpm/pool.d/
 COPY /tools/setup_wordpress.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/setup_wordpress.sh
 
+# Configure PHP-FPM to pass environment variables to PHP
+RUN echo "env[MYSQL_DATABASE] = \$MYSQL_DATABASE" >> /etc/php/7.4/fpm/pool.d/www.conf && \
+    echo "env[MYSQL_USER] = \$MYSQL_USER" >> /etc/php/7.4/fpm/pool.d/www.conf && \
+    echo "env[MYSQL_PASSWORD] = \$MYSQL_PASSWORD" >> /etc/php/7.4/fpm/pool.d/www.conf && \
+    echo "env[SQL_DB] = \$SQL_DB" >> /etc/php/7.4/fpm/pool.d/www.conf && \
+    echo "env[SQL_USER] = \$SQL_USER" >> /etc/php/7.4/fpm/pool.d/www.conf && \
+    echo "env[SQL_PASS] = \$SQL_PASS" >> /etc/php/7.4/fpm/pool.d/www.conf
+
 # Working Directory for WordPress
 WORKDIR /var/www/html
 

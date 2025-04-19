@@ -10,13 +10,26 @@ if [ -d "/run/secrets" ]; then
 else
     # Fallback to environment variables
     echo "Docker Secrets not found, using environment variables"
+    
+    # Exportar variáveis de ambiente para uso no script e no PHP
+    export SQL_DB=$MYSQL_DATABASE
+    export SQL_USER=$MYSQL_USER
+    export SQL_PASS=$MYSQL_PASSWORD
+    export WP_URL=$WORDPRESS_URL
+    export WP_TITLE="WordPress Site"
+    export WP_ADMIN_USER=$WORDPRESS_ADMIN_USER
+    export WP_ADMIN_PASS=$WORDPRESS_ADMIN_PASSWORD
+    export WP_ADMIN_EMAIL=$WORDPRESS_ADMIN_EMAIL
+    export WP_USER="user"
+    export WP_USER_EMAIL="user@example.com"
+    export WP_USER_PASS="userpassword"
 fi
 
 # Database connection check
 echo "Checking database connection..."
 max_retries=30
 counter=0
-while ! mysql -h mariadb -u $SQL_USER -p$SQL_PASS -e "SELECT 1" >/dev/null 2>&1; do
+while ! mysql -h mariadb -u $MYSQL_USER -p$MYSQL_PASSWORD -e "SELECT 1" >/dev/null 2>&1; do
     counter=$((counter+1))
     if [ $counter -gt $max_retries ]; then
         echo "Database connection failed after $max_retries attempts. Exiting."
@@ -62,9 +75,9 @@ if [ ! -f "wp-config.php" ]; then
    
     # Create configuration file
     ./wp-cli.phar config create \
-        --dbname=$SQL_DB \
-        --dbuser=$SQL_USER \
-        --dbpass=$SQL_PASS \
+        --dbname=$MYSQL_DATABASE \
+        --dbuser=$MYSQL_USER \
+        --dbpass=$MYSQL_PASSWORD \
         --dbhost=mariadb \
         --allow-root
     

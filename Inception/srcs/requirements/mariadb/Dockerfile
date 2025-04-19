@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y \
 # Create directory for the data valume
 RUN mkdir -p /var/lib/mysql
 
+# Create directory for the socket file
+RUN mkdir -p /run/mysqld && chown mysql:mysql /run/mysqld
+
 # Copy configuration file
 COPY ./conf/my.cnf /etc/mysql/my.cnf
 

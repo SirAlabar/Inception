@@ -16,7 +16,6 @@ services:
       - wordpress
     restart: always
 
-
   mariadb:
     container_name: mariadb
     build:
@@ -29,7 +28,6 @@ services:
     env_file:
       - .env
     restart: always
-
 
   wordpress:
     container_name: wordpress
@@ -57,8 +55,6 @@ services:
       - .env
     restart: always
 
-###
-
 networks:
   inception_network:
     driver: bridge
@@ -76,4 +72,3 @@ volumes:
       type: none
       device: /home/${USER}/data/wordpress
       o: bind
-
