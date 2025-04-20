@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Check for Docker secrets first
 if [ -f "/run/secrets/sql_user" ]; then
     SQL_USER=$(cat /run/secrets/sql_user)
@@ -14,19 +13,40 @@ else
     echo "Using environment variables for database configuration"
 fi
 
-# Check if the database directory is already initialized
-if [ ! -d "/var/lib/mysql/mysql" ]; then
-    echo "Initializing MariaDB data directory..."
+# Check if a MariaDB process is already running
+if pgrep mysqld > /dev/null; then
+    echo "MariaDB process already running, stopping it..."
+    pkill -9 mysqld
+    sleep 3
+fi
+
+echo "Status of /var/lib/mysql directory:"
+ls -la /var/lib/mysql
+
+# Check if the database was previously initialized
+DB_INITIALIZED=0
+if [ -d "/var/lib/mysql/mysql" ]; then
+    echo "MariaDB data directory appears to be already initialized"
+    DB_INITIALIZED=1
+fi
+
+# If reinitialization is needed, do it
+if [ $DB_INITIALIZED -eq 0 ]; then
+    echo "Initializing fresh MariaDB data directory..."
+    # Clean directory only if reinitialization is needed
+    rm -rf /var/lib/mysql/*
+    
+    # Initialize MariaDB data directory
     mysql_install_db --user=mysql --datadir=/var/lib/mysql
     
     # Start MariaDB temporarily for setup
     mysqld --user=mysql &
     PID=$!
     
-    # Wait for MySQL to start
+    # Wait for MariaDB to start
     until mysqladmin ping >/dev/null 2>&1; do
         echo "Waiting for MariaDB to be available..."
-        sleep 1
+        sleep 3
     done
     
     # Create database and user
@@ -38,14 +58,16 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQL_ROOT_PASS';
 FLUSH PRIVILEGES;
 MYSQL_SCRIPT
     
+    # Verify the user created in the database
+    echo "Checking user created in the database:"
+    mysql -u root -p$SQL_ROOT_PASS -e "SELECT User, Host FROM mysql.user;"
+    
     # Shutdown the temporary instance
-    mysqladmin -u root shutdown
+    mysqladmin -u root -p$SQL_ROOT_PASS shutdown
     echo "MariaDB initialization completed"
-else
-    echo "MariaDB data directory already initialized"
 fi
 
-# Clear any sensitive environment variables
+# Clear sensitive environment variables
 unset SQL_USER SQL_PASS SQL_ROOT_PASS
 
 # Start MariaDB in the foreground

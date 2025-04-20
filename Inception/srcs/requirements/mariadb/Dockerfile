@@ -14,6 +14,7 @@ RUN mkdir -p /run/mysqld && chown mysql:mysql /run/mysqld
 
 # Copy configuration file
 COPY ./conf/my.cnf /etc/mysql/my.cnf
+RUN chmod 644 /etc/mysql/my.cnf
 
 # Copy the initialization script
 COPY ./tools/init-db.sh /usr/local/bin/

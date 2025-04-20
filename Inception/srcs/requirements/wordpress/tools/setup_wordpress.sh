@@ -27,10 +27,18 @@ fi
 
 # Database connection check
 echo "Checking database connection..."
-max_retries=30
+max_retries=60
 counter=0
 while ! mysql -h mariadb -u $MYSQL_USER -p$MYSQL_PASSWORD -e "SELECT 1" >/dev/null 2>&1; do
     counter=$((counter+1))
+    
+    echo "Tentando conectar com:"
+    echo "Host: mariadb"
+    echo "User: $MYSQL_USER"
+    echo "Database: $MYSQL_DATABASE"
+    # Não exiba a senha inteira, apenas alguns caracteres para depuração
+    echo "Password: ${MYSQL_PASSWORD:0:3}..."
+
     if [ $counter -gt $max_retries ]; then
         echo "Database connection failed after $max_retries attempts. Exiting."
         exit 1
