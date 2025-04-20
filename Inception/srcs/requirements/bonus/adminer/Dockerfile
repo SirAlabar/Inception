@@ -1,10 +1,10 @@
 FROM alpine:3.18
 
-# Install requered packages
+# Install required packages
 RUN apk update && apk add --no-cache \
     php81 \
     php81-session \
-    php81-mysql \
+    php81-mysqli \
     php81-pdo \
     php81-pdo_mysql \
     php81-pdo_pgsql \
@@ -22,7 +22,7 @@ RUN wget -O index.php https://github.com/vrana/adminer/releases/download/v4.8.1/
 # Set Permissions
 RUN chmod 755 index.php
 
-# Create a user ofr PHP
+# Create a user for PHP
 RUN adduser -D -H -s /sbin/nologin adminer
 
 # Use a custom PHP configuration for better security
