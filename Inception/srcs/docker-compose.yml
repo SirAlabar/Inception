@@ -55,6 +55,19 @@ services:
       - .env
     restart: always
 
+  adminer:
+    container_name: adminer
+    build:
+      context: ./requirements/bonus/adminer
+      dockerfile: Dockerfile
+    networks:
+      - inception_network
+    volumes:
+      - adminer_data:/var/www/html
+    depends_on:
+      - mariadb
+    restart: always
+
 networks:
   inception_network:
     driver: bridge
@@ -71,4 +84,10 @@ volumes:
     driver_opts:
       type: none
       device: /home/${USER}/data/wordpress
+      o: bind
+  adminer_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/${USER}/data/adminer
       o: bind
