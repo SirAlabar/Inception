@@ -1,188 +1,133 @@
 #!/bin/bash
-# Loading credentials from secrets
-if [ -d "/run/secrets" ]; then
-    # Using Docker Secrets if available
-    SQL_USER=$(cat /run/secrets/sql_user)
-    SQL_PASS=$(cat /run/secrets/sql_pass)
-    WP_ADMIN_USER=$(cat /run/secrets/wp_admin_user)
-    WP_ADMIN_PASS=$(cat /run/secrets/wp_admin_pass)
-    WP_ADMIN_EMAIL=$(cat /run/secrets/wp_admin_email)
+set -e  # Exit immediately on error
+
+# Initial debug to show environment
+echo "=========== DEBUG ENVIRONMENT ============"
+echo "WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-mariadb}"
+echo "MYSQL_DATABASE: $MYSQL_DATABASE"
+echo "Available Docker Secrets:"
+ls -l /run/secrets/
+
+# Load secrets with validation
+if [ -f "/run/secrets/db_user" ]; then
+    SQL_USER=$(cat /run/secrets/db_user)
+    echo "Secret db_user loaded: $SQL_USER"
 else
-    # Fallback to environment variables
-    echo "Docker Secrets not found, using environment variables"
-    
-    # Exportar variáveis de ambiente para uso no script e no PHP
-    export SQL_DB=$MYSQL_DATABASE
-    export SQL_USER=$MYSQL_USER
-    export SQL_PASS=$MYSQL_PASSWORD
-    export WP_URL=$WORDPRESS_URL
-    export WP_TITLE="WordPress Site"
-    export WP_ADMIN_USER=$WORDPRESS_ADMIN_USER
-    export WP_ADMIN_PASS=$WORDPRESS_ADMIN_PASSWORD
-    export WP_ADMIN_EMAIL=$WORDPRESS_ADMIN_EMAIL
-    export WP_USER="user"
-    export WP_USER_EMAIL="user@example.com"
-    export WP_USER_PASS="userpassword"
+    echo "ERROR: Secret db_user not found!"
+    exit 1
 fi
 
-# Database connection check
-echo "Checking database connection..."
-max_retries=60
-counter=0
-while ! mysql -h mariadb -u $MYSQL_USER -p$MYSQL_PASSWORD -e "SELECT 1" >/dev/null 2>&1; do
-    counter=$((counter+1))
-    
-    echo "Tentando conectar com:"
-    echo "Host: mariadb"
-    echo "User: $MYSQL_USER"
-    echo "Database: $MYSQL_DATABASE"
-    # Não exiba a senha inteira, apenas alguns caracteres para depuração
-    echo "Password: ${MYSQL_PASSWORD:0:3}..."
+if [ -f "/run/secrets/db_password" ]; then
+    SQL_PASS=$(cat /run/secrets/db_password)
+    echo "Secret db_password loaded"
+else
+    echo "ERROR: Secret db_password not found!"
+    exit 1
+fi
 
-    if [ $counter -gt $max_retries ]; then
-        echo "Database connection failed after $max_retries attempts. Exiting."
+# Check if secrets contain newlines or extra spaces
+echo "Checking format of secrets:"
+echo "db_user: $(hexdump -C /run/secrets/db_user | head -1)"
+echo "db_password: $(hexdump -C /run/secrets/db_password | head -1)"
+
+# Define necessary variables
+SQL_DB=${MYSQL_DATABASE:-wordpress}
+WP_URL=${DOMAIN_NAME:-localhost}
+WP_TITLE="WordPress Site"
+
+echo "Database configuration:"
+echo "Host: mariadb"
+echo "Database: $SQL_DB"
+echo "User: $SQL_USER"
+echo "Password (first chars): ${SQL_PASS:0:3}..."
+
+# Test name resolution
+echo "Testing name resolution:"
+getent hosts mariadb || echo "Failed to resolve hostname mariadb"
+
+# Database connection check with improved logging
+echo "Checking database connection..."
+max_retries=30
+for ((counter=1; counter<=max_retries; counter++)); do
+    echo "Attempt $counter of $max_retries..."
+    
+    if mysql -h mariadb -u "$SQL_USER" -p"$SQL_PASS" -e "SELECT 1" 2>/tmp/mysql_error; then
+        echo "✅ Database connection successful!"
+        break
+    else
+        echo "❌ Connection failed:"
+        cat /tmp/mysql_error
+    fi
+   
+    echo "Database not ready. Waiting 5 seconds..."
+    sleep 5
+   
+    if [ $counter -eq $max_retries ]; then
+        echo "Database connection failed after $max_retries attempts."
         exit 1
     fi
-    echo "Database not ready yet. Waiting 5 seconds... (Attempt $counter/$max_retries)"
-    sleep 5
 done
-echo "Database connection successful! Continuing with WordPress setup..."
 
-# Redis connection check
-echo "Checking Redis connection..."
-max_retries=10
-counter=0
-while ! redis-cli -h redis ping >/dev/null 2>&1; do
-    counter=$((counter+1))
-    if [ $counter -gt $max_retries ]; then
-        echo "Warning: Redis not available after $max_retries attempts. Continuing without Redis."
-        export REDIS_ENABLED="false"
-        break
-    fi
-    echo "Redis not ready yet. Waiting 5 seconds... (Attempt $counter/$max_retries)"
-    sleep 5
-done
-if redis-cli -h redis ping >/dev/null 2>&1; then
-    echo "Redis connection established!"
-    export REDIS_ENABLED="true"
-fi
-
-# WordPress directory
+# Ensure WordPress directory exists
+mkdir -p /var/www/html
 cd /var/www/html
 
-# WordPress installation and configuration
+# WordPress installation
 if [ ! -f "wp-config.php" ]; then
     echo "Installing WordPress..."
    
     # Download WP-CLI
     curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
     chmod +x wp-cli.phar
-   
-    # Download WordPress
+    
+    # Core WordPress setup
     ./wp-cli.phar core download --allow-root
-   
-    # Create configuration file
     ./wp-cli.phar config create \
-        --dbname=$MYSQL_DATABASE \
-        --dbuser=$MYSQL_USER \
-        --dbpass=$MYSQL_PASSWORD \
+        --dbname="$SQL_DB" \
+        --dbuser="$SQL_USER" \
+        --dbpass="$SQL_PASS" \
         --dbhost=mariadb \
         --allow-root
-    
-    # Add Redis configuration to wp-config.php if Redis is available
-    if [ "$REDIS_ENABLED" = "true" ]; then
-        echo "Adding Redis configuration to wp-config.php..."
-        # Add Redis configuration before the "That's all" line
-        sed -i "/That's all/i \
-/* Redis Settings */ \\n\
-define('WP_REDIS_HOST', 'redis'); \\n\
-define('WP_REDIS_PORT', 6379); \\n\
-define('WP_REDIS_TIMEOUT', 1); \\n\
-define('WP_REDIS_READ_TIMEOUT', 1); \\n\
-define('WP_REDIS_DATABASE', 0); \\n\
-define('WP_CACHE', true); \\n\
-" wp-config.php
-    fi
-   
+        
     # Install WordPress
     ./wp-cli.phar core install \
-        --url=$WP_URL \
-        --title=$WP_TITLE \
-        --admin_user=$WP_ADMIN_USER \
-        --admin_password=$WP_ADMIN_PASS \
-        --admin_email=$WP_ADMIN_EMAIL \
+        --url="$WP_URL" \
+        --title="$WP_TITLE" \
+        --admin_user="$WP_ADMIN_USER" \
+        --admin_password="$WP_ADMIN_PASS" \
+        --admin_email="$WP_ADMIN_EMAIL" \
         --allow-root
-   
-    # Create additional non-admin user
+        
+    # Create additional user
     ./wp-cli.phar user create \
-        $WP_USER $WP_USER_EMAIL \
+        "$WP_USER" "$WP_USER_EMAIL" \
         --role=subscriber \
-        --user_pass=$WP_USER_PASS \
+        --user_pass="$WP_USER_PASS" \
         --allow-root
-   
-    # Additional WordPress settings
+        
+    # Configure WordPress
     ./wp-cli.phar option update comment_registration 1 --allow-root
    
-    # Install custom theme
+    # Theme and plugin setup
     ./wp-cli.phar theme install oceanwp --activate --allow-root
+    ./wp-cli.phar plugin install redis-cache --activate --allow-root
    
-    # Configure Redis Cache
-    if [ "$REDIS_ENABLED" = "true" ]; then
-        echo "Installing and configuring Redis Cache plugin..."
-        # Install and activate Redis Object Cache plugin
-        ./wp-cli.phar plugin install redis-cache --activate --allow-root
-        
-        # Create the object-cache.php drop-in
-        ./wp-cli.phar redis enable --allow-root
-        
-        echo "Redis Cache plugin installed and activated!"
-        
-        # Verify Redis is working
-        REDIS_STATUS=$(./wp-cli.phar redis status --allow-root)
-        echo "Redis Status: $REDIS_STATUS"
-    fi
+    # Redis configuration
+    ./wp-cli.phar config set WP_REDIS_HOST redis --allow-root
+    ./wp-cli.phar config set WP_REDIS_PORT 6379 --allow-root
+    ./wp-cli.phar config set WP_CACHE true --allow-root
+    ./wp-cli.phar redis enable --allow-root
 else
-    echo "WordPress already installed, checking Redis status..."
-    
-    # Check if Redis plugin is installed and Redis is connected
-    if [ "$REDIS_ENABLED" = "true" ] && [ -f "/var/www/html/wp-content/plugins/redis-cache/redis-cache.php" ]; then
-        # Make sure Redis configuration is in wp-config.php
-        if ! grep -q "WP_REDIS_HOST" /var/www/html/wp-config.php; then
-            echo "Adding Redis configuration to existing wp-config.php..."
-            sed -i "/That's all/i \
-/* Redis Settings */ \\n\
-define('WP_REDIS_HOST', 'redis'); \\n\
-define('WP_REDIS_PORT', 6379); \\n\
-define('WP_REDIS_TIMEOUT', 1); \\n\
-define('WP_REDIS_READ_TIMEOUT', 1); \\n\
-define('WP_REDIS_DATABASE', 0); \\n\
-define('WP_CACHE', true); \\n\
-" wp-config.php
-        fi
-        
-        # Enable Redis if not already enabled
-        if [ ! -f "/var/www/html/wp-content/object-cache.php" ]; then
-            echo "Enabling Redis Object Cache..."
-            ./wp-cli.phar redis enable --allow-root
-        fi
-        
-        echo "Redis Cache configuration verified!"
-    fi
+    echo "WordPress already installed."
 fi
 
-# Setting permissions
-echo "Configuring permissions..."
+# Set correct permissions
 chown -R www-data:www-data /var/www/html/
-find /var/www/html/ -type d -exec chmod 755 {} \;
-find /var/www/html/ -type f -exec chmod 644 {} \;
-chmod 755 /var/www/html/wp-content
+chmod -R 755 /var/www/html/
 
-# Cleaning sensitive variables
-if [ -d "/run/secrets" ]; then
-    unset SQL_USER SQL_PASS WP_ADMIN_USER WP_ADMIN_PASS WP_ADMIN_EMAIL \
-          WP_USER WP_USER_EMAIL WP_USER_PASS
-fi
-
+# Clear sensitive variables
+unset SQL_USER SQL_PASS WP_ADMIN_USER WP_ADMIN_PASS WP_ADMIN_EMAIL \
+      WP_USER WP_USER_EMAIL WP_USER_PASS
+      
 # Start PHP-FPM
-echo "Starting PHP-FPM..."
 exec /usr/sbin/php-fpm7.4 -F

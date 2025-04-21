@@ -1,4 +1,4 @@
-#version: '3'
+version: '3'
 
 services:
   nginx:
@@ -25,6 +25,10 @@ services:
       - mariadb_data:/var/lib/mysql
     networks:
       - inception_network
+    secrets:
+      - db_user
+      - db_password
+      - db_root_password
     env_file:
       - .env
     restart: always
@@ -38,10 +42,19 @@ services:
       - wordpress_data:/var/www/html
     networks:
       - inception_network
-    env_file:
-      - .env
+    secrets:
+      - db_user
+      - db_password
+      - wp_admin_user
+      - wp_admin_password
+      - wp_admin_email
+      - wp_user
+      - wp_user_password
+      - wp_user_email
     depends_on:
       - mariadb
+    env_file:
+      - .env
     restart: always
 
   redis:
@@ -77,17 +90,39 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/${USER}/data/mariadb
+      device: ${HOME}/data/mariadb
       o: bind
+
   wordpress_data:
     driver: local
     driver_opts:
       type: none
-      device: /home/${USER}/data/wordpress
+      device: ${HOME}/data/wordpress
       o: bind
+
   adminer_data:
     driver: local
     driver_opts:
       type: none
-      device: /home/${USER}/data/adminer
+      device: ${HOME}/data/adminer
       o: bind
+
+secrets:
+  db_user:
+    file: ../secrets/db_user.txt
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  wp_admin_user:
+    file: ../secrets/wp_admin_user.txt
+  wp_admin_password:
+    file: ../secrets/wp_admin_password.txt
+  wp_admin_email:
+    file: ../secrets/wp_admin_email.txt
+  wp_user:
+    file: ../secrets/wp_user.txt
+  wp_user_password:
+    file: ../secrets/wp_user_password.txt
+  wp_user_email:
+    file: ../secrets/wp_user_email.txt

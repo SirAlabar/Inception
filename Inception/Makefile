@@ -42,6 +42,7 @@ data:
 			@mkdir -p $(USER_PATH)/mariadb
 			@mkdir -p $(USER_PATH)/portainer
 			@mkdir -p $(USER_PATH)/redis
+			@mkdir -p $(USER_PATH)/adminer
 			@echo "$(GREEN)Volume directories created!$(RESET)"
 
 up:

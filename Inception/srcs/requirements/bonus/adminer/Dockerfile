@@ -10,6 +10,7 @@ RUN apk update && apk add --no-cache \
     php81-pdo_pgsql \
     php81-pdo_sqlite \
     php81-json \
+    php81-fpm \
     curl \
     wget
 
@@ -24,13 +25,18 @@ RUN chmod 755 index.php
 
 # Create a user for PHP
 RUN adduser -D -H -s /sbin/nologin adminer
+RUN chown -R adminer:adminer /var/www/html
 
 # Use a custom PHP configuration for better security
 COPY ./conf/php-fpm.conf /etc/php81/php-fpm.conf
 COPY ./conf/www.conf /etc/php81/php-fpm.d/www.conf
 
+# Copy startup script
+COPY ./tools/adminer.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/adminer.sh
+
 # Expose port for PHP-FPM
 EXPOSE 9000
 
 # Start PHP-FPM
-CMD ["php-fpm81", "-F"]
+CMD ["/usr/local/bin/adminer.sh"]
