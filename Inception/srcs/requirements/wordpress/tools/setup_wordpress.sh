@@ -25,6 +25,50 @@ else
     exit 1
 fi
 
+# Load WordPress Admin credentials
+if [ -f "/run/secrets/wp_admin_user" ]; then
+    WP_ADMIN_USER=$(cat /run/secrets/wp_admin_user)
+    echo "Secret wp_admin_user loaded: $WP_ADMIN_USER"
+else
+    echo "ERROR: Secret wp_admin_user not found!"
+    exit 1
+fi
+
+if [ -f "/run/secrets/wp_admin_password" ]; then
+    WP_ADMIN_PASS=$(cat /run/secrets/wp_admin_password)
+    echo "Secret wp_admin_password loaded"
+else
+    echo "ERROR: Secret wp_admin_password not found!"
+    exit 1
+fi
+
+if [ -f "/run/secrets/wp_admin_email" ]; then
+    WP_ADMIN_EMAIL=$(cat /run/secrets/wp_admin_email)
+    echo "Secret wp_admin_email loaded: $WP_ADMIN_EMAIL"
+else
+    echo "ERROR: Secret wp_admin_email not found!"
+    exit 1
+fi
+
+# Load WordPress User credentials
+if [ -f "/run/secrets/wp_user" ]; then
+    WP_USER=$(cat /run/secrets/wp_user)
+else
+    WP_USER="user"
+fi
+
+if [ -f "/run/secrets/wp_user_password" ]; then
+    WP_USER_PASS=$(cat /run/secrets/wp_user_password)
+else
+    WP_USER_PASS="userpassword"
+fi
+
+if [ -f "/run/secrets/wp_user_email" ]; then
+    WP_USER_EMAIL=$(cat /run/secrets/wp_user_email)
+else
+    WP_USER_EMAIL="user@example.com"
+fi
+
 # Check if secrets contain newlines or extra spaces
 echo "Checking format of secrets:"
 echo "db_user: $(hexdump -C /run/secrets/db_user | head -1)"
@@ -116,6 +160,7 @@ if [ ! -f "wp-config.php" ]; then
     ./wp-cli.phar config set WP_REDIS_HOST redis --allow-root
     ./wp-cli.phar config set WP_REDIS_PORT 6379 --allow-root
     ./wp-cli.phar config set WP_CACHE true --allow-root
+    ./wp-cli.phar config set WP_REDIS_PASSWORD "${REDIS_PASSWORD:-your_secure_redis_password}" --allow-root
     ./wp-cli.phar redis enable --allow-root
 else
     echo "WordPress already installed."
