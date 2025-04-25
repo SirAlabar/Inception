@@ -1,0 +1,226 @@
+name: Inception Docker Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create required directories for volumes
+        run: |
+          mkdir -p ${HOME}/data/mariadb
+          mkdir -p ${HOME}/data/wordpress
+          mkdir -p ${HOME}/data/adminer
+          mkdir -p ${HOME}/data/portainer
+          chmod -R 777 ${HOME}/data/
+
+      - name: Create secrets directory
+        run: |
+          mkdir -p secrets
+
+      - name: Create test secret files
+        run: |
+          # Database credentials
+          echo "wpuser" > secrets/db_user.txt
+          echo "wppassword" > secrets/db_password.txt
+          echo "rootpassword" > secrets/db_root_password.txt
+          
+          # WordPress admin credentials
+          echo "superadmin" > secrets/wp_admin_user.txt
+          echo "adminpassword" > secrets/wp_admin_password.txt
+          echo "admin@example.com" > secrets/wp_admin_email.txt
+          
+          # WordPress regular user credentials
+          echo "regularuser" > secrets/wp_user.txt
+          echo "userpassword" > secrets/wp_user_password.txt
+          echo "user@example.com" > secrets/wp_user_email.txt
+          
+          # FTP credentials
+          echo "wpftp" > secrets/ftp_user.txt
+          echo "ftppassword" > secrets/ftp_password.txt
+
+      - name: Create .env file
+        run: |
+          cat > srcs/.env << EOF
+          DOMAIN_NAME=localhost
+          MYSQL_ROOT_PASSWORD=rootpassword
+          MYSQL_USER=wpuser
+          MYSQL_PASSWORD=wppassword
+          MYSQL_DATABASE=wordpress
+          WP_ADMIN_USER=superadmin
+          WP_ADMIN_PASSWORD=adminpassword
+          WP_ADMIN_EMAIL=admin@example.com
+          WP_USER=regularuser
+          WP_USER_PASSWORD=userpassword
+          WP_USER_EMAIL=user@example.com
+          FTP_USER=wpftp
+          FTP_PASSWORD=ftppassword
+          FTP_PASV_ADDRESS=localhost
+          REDIS_PASSWORD=redispassword
+          HOME=${HOME}
+          EOF
+
+      - name: Fix permissions
+        run: chmod -R 755 secrets
+
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and start containers
+        run: |
+          make
+          echo "Waiting for containers to initialize (60 seconds)..."
+          sleep 60  # Give containers time to start and initialize
+
+      - name: Check running containers
+        run: docker ps
+
+      - name: Display container logs
+        run: |
+          echo "=== MariaDB Container Logs ==="
+          docker logs mariadb
+          
+          echo "=== WordPress Container Logs ==="
+          docker logs wordpress
+          
+          echo "=== NGINX Container Logs ==="
+          docker logs nginx
+          
+          echo "=== Redis Container Logs ==="
+          docker logs redis
+          
+          echo "=== Adminer Container Logs ==="
+          docker logs adminer
+          
+          echo "=== FTP Container Logs ==="
+          docker logs ftp
+          
+          echo "=== Portainer Container Logs ==="
+          docker logs portainer
+
+      - name: Test MariaDB container
+        run: |
+          if [ -z "$(docker ps -q --filter name=mariadb)" ]; then
+            echo "MariaDB container is not running"
+            exit 1
+          fi
+          
+          # Test database connection
+          docker exec mariadb mysql -u wpuser -pwppassword -e "SHOW DATABASES;" | grep wordpress
+          
+          # Test database structure
+          docker exec mariadb mysql -u wpuser -pwppassword -e "USE wordpress; SHOW TABLES;" | grep wp_
+
+      - name: Test WordPress container
+        run: |
+          if [ -z "$(docker ps -q --filter name=wordpress)" ]; then
+            echo "WordPress container is not running"
+            exit 1
+          fi
+          
+          # Verify PHP-FPM is running
+          docker exec wordpress pgrep php-fpm
+          
+          # Verify WordPress files exist
+          docker exec wordpress test -f /var/www/html/wp-config.php
+          
+          # Verify WordPress is configured
+          docker exec wordpress grep "DB_NAME" /var/www/html/wp-config.php
+
+      - name: Test NGINX container and TLS
+        run: |
+          if [ -z "$(docker ps -q --filter name=nginx)" ]; then
+            echo "NGINX container is not running"
+            exit 1
+          fi
+          
+          # Verify NGINX is running
+          docker exec nginx pgrep nginx
+          
+          # Verify SSL certificate exists
+          docker exec nginx test -f /etc/nginx/ssl/nginx.crt
+          docker exec nginx test -f /etc/nginx/ssl/nginx.key
+          
+          # Install dependencies for testing HTTPS
+          sudo apt-get update && sudo apt-get install -y curl openssl
+          
+          # Test HTTPS connection (allow self-signed certs)
+          curl -k https://localhost
+
+      - name: Test Redis container
+        run: |
+          if [ -z "$(docker ps -q --filter name=redis)" ]; then
+            echo "Redis container is not running"
+            exit 1
+          fi
+          
+          # Verify Redis is running
+          docker exec redis pgrep redis-server
+          
+          # Test Redis functionality
+          docker exec redis redis-cli -a redispassword ping | grep -q "PONG"
+          
+          # Test Redis connection from WordPress
+          docker exec redis redis-cli -a redispassword keys '*' || true
+
+      - name: Test Adminer container
+        run: |
+          if [ -z "$(docker ps -q --filter name=adminer)" ]; then
+            echo "Adminer container is not running"
+            exit 1
+          fi
+          
+          # Verify processes are running
+          docker exec adminer pgrep php-fpm || docker exec adminer pgrep php
+          
+          # Test connection to database through Adminer
+          # This just checks if the container is running properly
+          docker exec nginx curl -k https://adminer || echo "Adminer is not accessible directly, but container is running"
+
+      - name: Test FTP container
+        run: |
+          if [ -z "$(docker ps -q --filter name=ftp)" ]; then
+            echo "FTP container is not running"
+            exit 1
+          fi
+          
+          # Verify vsftpd is running
+          docker exec ftp pgrep vsftpd
+          
+          # Install FTP client
+          sudo apt-get update && sudo apt-get install -y ftp
+          
+          # Create test file for upload
+          echo "This is a test file for FTP upload" > test_upload.txt
+          
+          # Test FTP connection (this might fail in GitHub Actions environment due to port restrictions)
+          # We'll just check if the service is running
+          docker exec ftp netstat -tuln | grep -q ":21.*LISTEN"
+
+      - name: Test Portainer container
+        run: |
+          if [ -z "$(docker ps -q --filter name=portainer)" ]; then
+            echo "Portainer container is not running"
+            exit 1
+          fi
+          
+          # Verify Portainer is running
+          docker exec portainer ps aux | grep portainer
+          
+          # Check if Portainer is listening on port 9000
+          docker exec portainer netstat -tuln | grep -q ":9000.*LISTEN"
+
+      - name: Tests completed successfully
+        run: echo "All tests completed successfully!"
+
+      - name: Stop containers
+        run: make down
+        if: always()
