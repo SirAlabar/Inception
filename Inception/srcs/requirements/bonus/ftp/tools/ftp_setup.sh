@@ -48,18 +48,14 @@ echo "Password updated for $FTP_USER"
 touch /etc/vsftpd/vsftpd.userlist
 echo "$FTP_USER" > /etc/vsftpd/vsftpd.userlist
 
-# Fix permissions - make sure www-data group has access
-if getent group www-data > /dev/null; then
-    # Add FTP user to www-data group
-    adduser $FTP_USER www-data
-    # Set proper permissions
-    chown -R www-data:www-data /var/www/html
-    chmod -R 775 /var/www/html
-else
-    # If www-data group doesn't exist, set ownership to FTP user
-    chown -R $FTP_USER:$FTP_USER /var/www/html
-    chmod -R 755 /var/www/html
-fi
+# Set up permissions on WordPress directory
+chown -R $FTP_USER:$FTP_USER /var/www/html
+chmod -R 755 /var/www/html
+
+# Make vsftpd log directory
+mkdir -p /var/log/vsftpd
+touch /var/log/vsftpd/vsftpd.log
+chmod -R 755 /var/log/vsftpd
 
 # Debug: Show directory listing and permissions
 echo "Directory listing of /var/www/html:"
