@@ -99,9 +99,7 @@ services:
       - ftp_user
       - ftp_password
     environment:
-      - FTP_PASV_ADDRESS=${DOMAIN_NAME}
-    env_file:
-      - .env
+      - DOMAIN_NAME=${DOMAIN_NAME}
     depends_on:
       - wordpress
     restart: always
