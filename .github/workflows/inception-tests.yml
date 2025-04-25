@@ -60,8 +60,13 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           echo "Current directory: $(pwd)"
-          echo "Running make up command:"
-          make up
+          echo "Listing Makefile content:"
+          cat Makefile
+          echo "Available make targets:"
+          make -pn | grep -A1 "^# Files" | grep -v "^#\|^$" | sort | uniq
+          
+          echo "Running make (without arguments) command:"
+          make
           
           echo "Waiting for containers to initialize (60 seconds)..."
           sleep 60  # Give containers time to start
