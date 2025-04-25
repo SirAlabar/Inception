@@ -47,26 +47,14 @@ jobs:
           echo "wpftp" > secrets/ftp_user.txt
           echo "ftppassword" > secrets/ftp_password.txt
 
-      - name: Create .env file
+      - name: Verify .env file exists
         run: |
-          cat > srcs/.env << EOF
-          DOMAIN_NAME=localhost
-          MYSQL_ROOT_PASSWORD=rootpassword
-          MYSQL_USER=wpuser
-          MYSQL_PASSWORD=wppassword
-          MYSQL_DATABASE=wordpress
-          WP_ADMIN_USER=superadmin
-          WP_ADMIN_PASSWORD=adminpassword
-          WP_ADMIN_EMAIL=admin@example.com
-          WP_USER=regularuser
-          WP_USER_PASSWORD=userpassword
-          WP_USER_EMAIL=user@example.com
-          FTP_USER=wpftp
-          FTP_PASSWORD=ftppassword
-          FTP_PASV_ADDRESS=localhost
-          REDIS_PASSWORD=redispassword
-          HOME=${HOME}
-          EOF
+          if [ -f "srcs/.env" ]; then
+            echo ".env file exists in srcs directory"
+          else
+            echo "ERROR: .env file not found in srcs directory"
+            exit 1
+          fi
 
       - name: Fix permissions
         run: chmod -R 755 secrets
