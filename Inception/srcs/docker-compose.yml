@@ -1,4 +1,4 @@
-version: '3'
+#version: '3'
 
 services:
   nginx:
@@ -6,6 +6,8 @@ services:
     build:
       context: ./requirements/nginx
       dockerfile: Dockerfile
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
     ports:
       - "443:443"
     volumes:
@@ -81,6 +83,43 @@ services:
       - mariadb
     restart: always
 
+  ftp:
+    container_name: ftp
+    build:
+      context: ./requirements/bonus/ftp
+      dockerfile: Dockerfile
+    ports:
+      - "21:21"
+      - "40000-40100:40000-40100"
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception_network
+    secrets:
+      - ftp_user
+      - ftp_password
+    environment:
+      - FTP_PASV_ADDRESS=${DOMAIN_NAME}
+    env_file:
+      - .env
+    depends_on:
+      - wordpress
+    restart: always
+
+  portainer:
+    container_name: portainer
+    build:
+      context: ./requirements/bonus/portainer
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - inception_network
+    restart: always
+
 networks:
   inception_network:
     driver: bridge
@@ -107,6 +146,13 @@ volumes:
       device: ${HOME}/data/adminer
       o: bind
 
+  portainer_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${HOME}/data/portainer
+      o: bind
+
 secrets:
   db_user:
     file: ../secrets/db_user.txt
@@ -126,3 +172,7 @@ secrets:
     file: ../secrets/wp_user_password.txt
   wp_user_email:
     file: ../secrets/wp_user_email.txt
+  ftp_user:
+    file: ../secrets/ftp_user.txt
+  ftp_password:
+    file: ../secrets/ftp_password.txt  

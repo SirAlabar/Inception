@@ -123,7 +123,7 @@ if [ ! -f "wp-config.php" ]; then
     # Download WP-CLI
     curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
     chmod +x wp-cli.phar
-    
+   
     # Core WordPress setup
     ./wp-cli.phar core download --allow-root
     ./wp-cli.phar config create \
@@ -132,7 +132,7 @@ if [ ! -f "wp-config.php" ]; then
         --dbpass="$SQL_PASS" \
         --dbhost=mariadb \
         --allow-root
-        
+       
     # Install WordPress
     ./wp-cli.phar core install \
         --url="$WP_URL" \
@@ -141,22 +141,22 @@ if [ ! -f "wp-config.php" ]; then
         --admin_password="$WP_ADMIN_PASS" \
         --admin_email="$WP_ADMIN_EMAIL" \
         --allow-root
-        
+       
     # Create additional user
     ./wp-cli.phar user create \
         "$WP_USER" "$WP_USER_EMAIL" \
         --role=subscriber \
         --user_pass="$WP_USER_PASS" \
         --allow-root
-        
+       
     # Configure WordPress
     ./wp-cli.phar option update comment_registration 1 --allow-root
    
-    # Theme and plugin setup
-    ./wp-cli.phar theme install oceanwp --activate --allow-root
-    ./wp-cli.phar plugin install redis-cache --activate --allow-root
+    # Set permalink structure
+    ./wp-cli.phar rewrite structure '/%postname%/' --allow-root
    
     # Redis configuration
+    ./wp-cli.phar plugin install redis-cache --activate --allow-root
     ./wp-cli.phar config set WP_REDIS_HOST redis --allow-root
     ./wp-cli.phar config set WP_REDIS_PORT 6379 --allow-root
     ./wp-cli.phar config set WP_CACHE true --allow-root
