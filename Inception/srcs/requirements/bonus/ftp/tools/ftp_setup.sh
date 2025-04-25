@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Load FTP user credentials from secrets or environment
 if [ -f "/run/secrets/ftp_user" ] && [ -f "/run/secrets/ftp_password" ]; then
@@ -32,6 +33,16 @@ echo "Hostname: $(hostname)"
 echo "IP Address: $(hostname -i)"
 echo "---------------------"
 
+# Create directories if they don't exist
+mkdir -p /var/run/vsftpd/empty
+mkdir -p /var/log/vsftpd
+mkdir -p /etc/vsftpd
+mkdir -p /var/www/html
+
+# Fix permissions on directories
+chmod 755 /var/run/vsftpd/empty
+chmod 755 /var/log/vsftpd
+
 # Create FTP user if it doesn't exist
 if ! id "$FTP_USER" &>/dev/null; then
     adduser -D -h /var/www/html $FTP_USER
@@ -52,18 +63,27 @@ echo "$FTP_USER" > /etc/vsftpd/vsftpd.userlist
 chown -R $FTP_USER:$FTP_USER /var/www/html
 chmod -R 755 /var/www/html
 
-# Make vsftpd log directory
-mkdir -p /var/log/vsftpd
-touch /var/log/vsftpd/vsftpd.log
-chmod -R 755 /var/log/vsftpd
-
 # Debug: Show directory listing and permissions
 echo "Directory listing of /var/www/html:"
 ls -la /var/www/html
 
+# Debug: Log vsftpd config and verify it exists
+echo "vsftpd configuration:"
+if [ -f "/etc/vsftpd/vsftpd.conf" ]; then
+    cat /etc/vsftpd/vsftpd.conf
+else
+    echo "ERROR: vsftpd.conf file is missing!"
+    ls -la /etc/vsftpd/
+fi
+
+# Debug: Check if vsftpd is installed
+echo "Checking vsftpd installation:"
+which vsftpd || echo "vsftpd not found in PATH"
+ls -la /usr/sbin/vsftpd || echo "vsftpd not found in /usr/sbin"
+
 # Clear sensitive variables
 unset FTP_PASS
 
-# Start vsftpd
+# Start vsftpd with additional options for debugging
 echo "Starting FTP server..."
-exec /usr/sbin/vsftpd /etc/vsftpd/vsftpd.conf
+exec /usr/sbin/vsftpd /etc/vsftpd/vsftpd.conf -d
