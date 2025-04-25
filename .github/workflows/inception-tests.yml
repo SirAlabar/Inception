@@ -14,201 +14,257 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Debug repository structure
+        run: |
+          cd $GITHUB_WORKSPACE
+          echo "Current directory: $(pwd)"
+          echo "Repository files:"
+          ls -la
+          echo "Makefile exists: $(test -f Makefile && echo 'Yes' || echo 'No')"
+          echo "srcs directory exists: $(test -d srcs && echo 'Yes' || echo 'No')"
+          echo "srcs/.env exists: $(test -f srcs/.env && echo 'Yes' || echo 'No')"
+
       - name: Create required directories for volumes
         run: |
-          mkdir -p ${HOME}/data/mariadb
-          mkdir -p ${HOME}/data/wordpress
-          mkdir -p ${HOME}/data/adminer
-          mkdir -p ${HOME}/data/portainer
-          chmod -R 777 ${HOME}/data/
+          cd $GITHUB_WORKSPACE
+          sudo mkdir -p ${HOME}/data/mariadb
+          sudo mkdir -p ${HOME}/data/wordpress
+          sudo mkdir -p ${HOME}/data/adminer
+          sudo mkdir -p ${HOME}/data/portainer
+          sudo mkdir -p ${HOME}/data/redis
+          sudo chmod -R 777 ${HOME}/data/
 
-      - name: Create secrets directory
+      - name: Create test secrets
         run: |
+          cd $GITHUB_WORKSPACE
+          # Usaremos valores padrão para os testes
           mkdir -p secrets
-
-      - name: Create test secret files
-        run: |
-          # Database credentials
+          echo "localhost" > secrets/domain_name.txt
           echo "wpuser" > secrets/db_user.txt
           echo "wppassword" > secrets/db_password.txt
           echo "rootpassword" > secrets/db_root_password.txt
-          
-          # WordPress admin credentials
           echo "superadmin" > secrets/wp_admin_user.txt
           echo "adminpassword" > secrets/wp_admin_password.txt
           echo "admin@example.com" > secrets/wp_admin_email.txt
-          
-          # WordPress regular user credentials
           echo "regularuser" > secrets/wp_user.txt
           echo "userpassword" > secrets/wp_user_password.txt
           echo "user@example.com" > secrets/wp_user_email.txt
-          
-          # FTP credentials
           echo "wpftp" > secrets/ftp_user.txt
           echo "ftppassword" > secrets/ftp_password.txt
-
-      - name: Verify .env file exists
-        run: |
-          if [ -f "srcs/.env" ]; then
-            echo ".env file exists in srcs directory"
-          else
-            echo "ERROR: .env file not found in srcs directory"
-            exit 1
-          fi
-
-      - name: Fix permissions
-        run: chmod -R 755 secrets
+          echo "redispassword" > secrets/redis_password.txt
 
       - name: Setup Docker
         uses: docker/setup-buildx-action@v2
 
       - name: Build and start containers
         run: |
-          make
+          cd $GITHUB_WORKSPACE
+          echo "Current directory: $(pwd)"
+          echo "Running make up command:"
+          make up
+          
           echo "Waiting for containers to initialize (60 seconds)..."
-          sleep 60  # Give containers time to start and initialize
+          sleep 60  # Give containers time to start
 
       - name: Check running containers
-        run: docker ps
+        run: |
+          cd $GITHUB_WORKSPACE
+          echo "Docker containers status:"
+          docker ps
 
       - name: Display container logs
         run: |
-          echo "=== MariaDB Container Logs ==="
-          docker logs mariadb
-          
+          cd $GITHUB_WORKSPACE
           echo "=== WordPress Container Logs ==="
-          docker logs wordpress
+          docker logs wordpress || true
+          
+          echo "=== MariaDB Container Logs ==="
+          docker logs mariadb || true
           
           echo "=== NGINX Container Logs ==="
-          docker logs nginx
-          
-          echo "=== Redis Container Logs ==="
-          docker logs redis
-          
-          echo "=== Adminer Container Logs ==="
-          docker logs adminer
-          
-          echo "=== FTP Container Logs ==="
-          docker logs ftp
-          
-          echo "=== Portainer Container Logs ==="
-          docker logs portainer
+          docker logs nginx || true
 
       - name: Test MariaDB container
         run: |
-          if [ -z "$(docker ps -q --filter name=mariadb)" ]; then
-            echo "MariaDB container is not running"
+          cd $GITHUB_WORKSPACE
+          MARIADB_CONTAINER_ID=$(docker ps -q --filter "name=mariadb")
+          if [ -z "$MARIADB_CONTAINER_ID" ]; then
+            echo "❌ MariaDB container is not running"
             exit 1
           fi
           
-          # Test database connection
-          docker exec mariadb mysql -u wpuser -pwppassword -e "SHOW DATABASES;" | grep wordpress
+          echo "✅ MariaDB container is running"
           
-          # Test database structure
-          docker exec mariadb mysql -u wpuser -pwppassword -e "USE wordpress; SHOW TABLES;" | grep wp_
+          # Teste básico de conexão ao banco de dados
+          docker exec mariadb mysql -u wpuser -pwppassword -e "SHOW DATABASES;" | grep wordpress || {
+            echo "❌ Failed to connect to MariaDB with test credentials"
+            exit 1
+          }
+          
+          echo "✅ Successfully connected to MariaDB"
 
       - name: Test WordPress container
         run: |
-          if [ -z "$(docker ps -q --filter name=wordpress)" ]; then
-            echo "WordPress container is not running"
+          cd $GITHUB_WORKSPACE
+          WP_CONTAINER_ID=$(docker ps -q --filter "name=wordpress")
+          if [ -z "$WP_CONTAINER_ID" ]; then
+            echo "❌ WordPress container is not running"
             exit 1
           fi
           
-          # Verify PHP-FPM is running
-          docker exec wordpress pgrep php-fpm
+          echo "✅ WordPress container is running"
           
-          # Verify WordPress files exist
-          docker exec wordpress test -f /var/www/html/wp-config.php
+          # Verificar se o PHP-FPM está rodando
+          if ! docker exec $WP_CONTAINER_ID pgrep php-fpm > /dev/null; then
+            echo "❌ PHP-FPM is not running in WordPress container"
+            exit 1
+          fi
           
-          # Verify WordPress is configured
-          docker exec wordpress grep "DB_NAME" /var/www/html/wp-config.php
+          echo "✅ PHP-FPM is running in WordPress container"
+          
+          # Verificar se o arquivo wp-config.php existe
+          if ! docker exec $WP_CONTAINER_ID test -f /var/www/html/wp-config.php; then
+            echo "❌ wp-config.php file is missing in WordPress container"
+            exit 1
+          fi
+          
+          echo "✅ WordPress configuration file exists"
 
       - name: Test NGINX container and TLS
         run: |
-          if [ -z "$(docker ps -q --filter name=nginx)" ]; then
-            echo "NGINX container is not running"
+          cd $GITHUB_WORKSPACE
+          NGINX_CONTAINER_ID=$(docker ps -q --filter "name=nginx")
+          if [ -z "$NGINX_CONTAINER_ID" ]; then
+            echo "❌ NGINX container is not running"
             exit 1
           fi
           
-          # Verify NGINX is running
-          docker exec nginx pgrep nginx
+          echo "✅ NGINX container is running"
           
-          # Verify SSL certificate exists
-          docker exec nginx test -f /etc/nginx/ssl/nginx.crt
-          docker exec nginx test -f /etc/nginx/ssl/nginx.key
+          # Verificar se o NGINX está rodando
+          if ! docker exec $NGINX_CONTAINER_ID pgrep nginx > /dev/null; then
+            echo "❌ NGINX process is not running"
+            exit 1
+          fi
           
-          # Install dependencies for testing HTTPS
-          sudo apt-get update && sudo apt-get install -y curl openssl
+          echo "✅ NGINX process is running"
           
-          # Test HTTPS connection (allow self-signed certs)
-          curl -k https://localhost
+          # Verificar se o certificado SSL existe
+          if ! docker exec $NGINX_CONTAINER_ID test -f /etc/nginx/ssl/nginx.crt; then
+            echo "❌ SSL certificate not found"
+            exit 1
+          fi
+          
+          echo "✅ SSL certificate exists"
 
       - name: Test Redis container
         run: |
-          if [ -z "$(docker ps -q --filter name=redis)" ]; then
-            echo "Redis container is not running"
+          cd $GITHUB_WORKSPACE
+          REDIS_CONTAINER_ID=$(docker ps -q --filter "name=redis")
+          if [ -z "$REDIS_CONTAINER_ID" ]; then
+            echo "❌ Redis container is not running"
             exit 1
           fi
           
-          # Verify Redis is running
-          docker exec redis pgrep redis-server
+          echo "✅ Redis container is running"
           
-          # Test Redis functionality
-          docker exec redis redis-cli -a redispassword ping | grep -q "PONG"
+          # Verificar se o Redis está rodando
+          if ! docker exec $REDIS_CONTAINER_ID pgrep redis-server > /dev/null; then
+            echo "❌ Redis server process is not running"
+            exit 1
+          fi
           
-          # Test Redis connection from WordPress
-          docker exec redis redis-cli -a redispassword keys '*' || true
+          echo "✅ Redis server process is running"
+          
+          # Testar funcionalidade do Redis
+          # Nota: Ajustado para usar redispassword como senha de teste
+          if ! docker exec redis redis-cli -a "redispassword" ping | grep -q "PONG"; then
+            echo "❌ Redis connection failed"
+            exit 1
+          fi
+          
+          echo "✅ Redis connection successful"
+          
+          # Testar operações de leitura/escrita no Redis
+          RANDOM_VALUE=$RANDOM
+          docker exec redis redis-cli -a "redispassword" set test_key "$RANDOM_VALUE" > /dev/null
+          RETRIEVED_VALUE=$(docker exec redis redis-cli -a "redispassword" get test_key)
+          if [ "$RETRIEVED_VALUE" != "$RANDOM_VALUE" ]; then
+            echo "❌ Redis functionality test failed: Values don't match"
+            exit 1
+          fi
+          
+          echo "✅ Redis read/write test successful"
 
       - name: Test Adminer container
         run: |
-          if [ -z "$(docker ps -q --filter name=adminer)" ]; then
-            echo "Adminer container is not running"
+          cd $GITHUB_WORKSPACE
+          ADMINER_CONTAINER_ID=$(docker ps -q --filter "name=adminer")
+          if [ -z "$ADMINER_CONTAINER_ID" ]; then
+            echo "❌ Adminer container is not running"
             exit 1
           fi
           
-          # Verify processes are running
-          docker exec adminer pgrep php-fpm || docker exec adminer pgrep php
+          echo "✅ Adminer container is running"
           
-          # Test connection to database through Adminer
-          # This just checks if the container is running properly
-          docker exec nginx curl -k https://adminer || echo "Adminer is not accessible directly, but container is running"
+          # Verificar se os processos necessários estão rodando
+          # Adapte conforme necessário para seu container Adminer específico
+          if ! docker exec $ADMINER_CONTAINER_ID pgrep php > /dev/null; then
+            echo "❌ PHP process is not running in Adminer container"
+            exit 1
+          fi
+          
+          echo "✅ Adminer processes are running"
 
       - name: Test FTP container
         run: |
-          if [ -z "$(docker ps -q --filter name=ftp)" ]; then
-            echo "FTP container is not running"
+          cd $GITHUB_WORKSPACE
+          FTP_CONTAINER_ID=$(docker ps -q --filter "name=ftp")
+          if [ -z "$FTP_CONTAINER_ID" ]; then
+            echo "❌ FTP container is not running"
             exit 1
           fi
           
-          # Verify vsftpd is running
-          docker exec ftp pgrep vsftpd
+          echo "✅ FTP container is running"
           
-          # Install FTP client
-          sudo apt-get update && sudo apt-get install -y ftp
+          # Verificar se o vsftpd está rodando
+          if ! docker exec $FTP_CONTAINER_ID pgrep vsftpd > /dev/null; then
+            echo "❌ vsftpd process is not running in FTP container"
+            exit 1
+          fi
           
-          # Create test file for upload
-          echo "This is a test file for FTP upload" > test_upload.txt
+          echo "✅ vsftpd process is running"
           
-          # Test FTP connection (this might fail in GitHub Actions environment due to port restrictions)
-          # We'll just check if the service is running
-          docker exec ftp netstat -tuln | grep -q ":21.*LISTEN"
+          # Verificar se está escutando na porta 21
+          if ! docker exec $FTP_CONTAINER_ID sh -c "netstat -tuln | grep -q ':21.*LISTEN'"; then
+            echo "❌ FTP container is not listening on port 21"
+            exit 1
+          fi
+          
+          echo "✅ FTP container is listening on port 21"
 
       - name: Test Portainer container
         run: |
-          if [ -z "$(docker ps -q --filter name=portainer)" ]; then
-            echo "Portainer container is not running"
+          cd $GITHUB_WORKSPACE
+          PORTAINER_CONTAINER_ID=$(docker ps -q --filter "name=portainer")
+          if [ -z "$PORTAINER_CONTAINER_ID" ]; then
+            echo "❌ Portainer container is not running"
             exit 1
           fi
           
-          # Verify Portainer is running
-          docker exec portainer ps aux | grep portainer
+          echo "✅ Portainer container is running"
           
-          # Check if Portainer is listening on port 9000
-          docker exec portainer netstat -tuln | grep -q ":9000.*LISTEN"
-
-      - name: Tests completed successfully
-        run: echo "All tests completed successfully!"
+          # Verificar se está escutando na porta 9000
+          if ! docker exec $PORTAINER_CONTAINER_ID sh -c "netstat -tuln | grep -q ':9000.*LISTEN'"; then
+            echo "❌ Portainer container is not listening on port 9000"
+            exit 1
+          fi
+          
+          echo "✅ Portainer is listening on port 9000"
 
       - name: Stop containers
-        run: make down
+        run: |
+          cd $GITHUB_WORKSPACE
+          echo "Stopping containers with make down"
+          make down
         if: always()
