@@ -16,6 +16,7 @@ services:
       - inception_network
     depends_on:
       - wordpress
+      - static-site
     restart: always
 
   mariadb:
@@ -118,10 +119,10 @@ services:
       - inception_network
     restart: always
 
-  static_site:
-    container_name: static_site
+  static-site:
+    container_name: static-site
     build:
-      context: ./requirements/bonus/static_site
+      context: ./requirements/bonus/static-site
       dockerfile: Dockerfile
     networks:
       - inception_network
