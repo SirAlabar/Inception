@@ -122,7 +122,7 @@ services:
   static-site:
     container_name: static-site
     build:
-      context: ./requirements/bonus/static-site
+      context: ./requirements/bonus/static_site
       dockerfile: Dockerfile
     networks:
       - inception_network
