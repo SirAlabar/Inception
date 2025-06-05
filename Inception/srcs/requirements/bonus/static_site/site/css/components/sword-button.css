@@ -1,0 +1,207 @@
+/* Sword Menu Button Styles */
+.navbar-toggler 
+{
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border-radius: 50%;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: transparent;
+}
+
+/* Hide default Bootstrap icon */
+.navbar-toggler-icon 
+{
+	display: none;
+}
+
+.sword-menu-button 
+{
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+/* Button base */
+.sword-button .button-bg 
+{
+	fill: rgba(33, 37, 41, 0.4);
+	stroke: rgba(255, 255, 255, 0.2);
+	stroke-width: 1px;
+	transition: fill 0.4s ease;
+}
+
+/* Magic circle */
+.sword-button .magic-circle 
+{
+	stroke: url(#swordGradient);
+	stroke-width: 1px;
+	stroke-dasharray: 4 2;
+	fill: none;
+	opacity: 0.1;
+	animation: rotate 15s linear infinite;
+}
+
+/* Runes */
+.sword-button .rune 
+{
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	transition: opacity 0.4s ease, transform 0.4s ease;
+	filter: drop-shadow(0 0 2px currentColor);
+}
+
+.sword-button .central-rune 
+{
+	stroke: #7F9CF5;
+}
+
+.sword-button .top-rune 
+{
+	stroke: #63B3ED;
+}
+
+.sword-button .top-rune-dot 
+{
+	fill: #63B3ED;
+}
+
+.sword-button .bottom-rune 
+{
+	stroke: #9F7AEA;
+}
+
+/* Sword components */
+.sword-button .sword-group 
+{
+	opacity: 0;
+	transform-origin: center;
+	transform: scale(0.5) rotate(0deg);
+	transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.sword-button .sword-blade 
+{
+	stroke: #63B3ED;
+	filter: drop-shadow(0 0 3px #63B3ED);
+}
+
+.sword-button .sword-guard 
+{
+	stroke: #F6AD55;
+	filter: drop-shadow(0 0 2px #F6AD55);
+}
+
+.sword-button .sword-handle 
+{
+	stroke: #8B4513;
+}
+
+.sword-button .sword-pommel 
+{
+	fill: #FFD700;
+	filter: drop-shadow(0 0 2px #FFD700);
+}
+
+.sword-button .sword-shine 
+{
+	stroke: white;
+	opacity: 0.8;
+}
+
+/* Attack trail */
+.sword-button .attack-trail 
+{
+	opacity: 0;
+	stroke: url(#trailGradient);
+	stroke-width: 10;
+	stroke-linecap: round;
+	filter: blur(3px);
+}
+
+/* Active states when menu is open */
+.navbar-toggler[aria-expanded="true"] .button-bg 
+{
+	fill: rgba(42, 67, 101, 0.6);
+}
+
+.navbar-toggler[aria-expanded="true"] .magic-circle 
+{
+	stroke-dasharray: 0;
+	opacity: 0.3;
+}
+
+.navbar-toggler[aria-expanded="true"] .rune 
+{
+	opacity: 0;
+	transform: scale(0);
+}
+
+.navbar-toggler[aria-expanded="true"] .sword-group 
+{
+	opacity: 1;
+	transform: rotate(90deg) scale(1);
+}
+
+/* Animations */
+@keyframes rotate 
+{
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+/* Sword attack animation sequence */
+@keyframes attackFirst 
+{
+	0% { transform: rotate(0deg) scale(1); }
+	100% { transform: rotate(-45deg) scale(1.05); }
+}
+
+@keyframes attackSecond 
+{
+	0% { transform: rotate(-45deg) scale(1.05); }
+	100% { transform: rotate(20deg) scale(1); }
+}
+
+@keyframes attackFinal 
+{
+	0% { transform: rotate(20deg) scale(1); }
+	100% { transform: rotate(90deg) scale(1); }
+}
+
+@keyframes trailFade 
+{
+	0% { opacity: 0; }
+	30% { opacity: 0.7; }
+	100% { opacity: 0; }
+}
+
+/* Animation classes */
+.sword-button .sword-group.attacking-step1 
+{
+	animation: attackFirst 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sword-button .sword-group.attacking-step2 
+{
+	animation: attackSecond 0.3s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.sword-button .sword-group.attacking-step3 
+{
+	animation: attackFinal 0.3s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sword-button .attack-trail.visible 
+{
+	animation: trailFade 0.7s forwards;
+}
+
+/* Remove default rotation from your existing CSS */
+.navbar-toggler[aria-expanded="true"] 
+{
+	transform: none;
+}

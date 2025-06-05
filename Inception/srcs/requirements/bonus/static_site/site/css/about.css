@@ -1,0 +1,116 @@
+/* about.css - Styles for the About page */
+
+/* Character stats section */
+.character-stats {
+    background-color: rgba(33, 37, 41, 0.2);
+    backdrop-filter: blur(2px);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.character-stats h3 {
+    color: #ffcc33;
+    margin-bottom: 15px;
+    text-align: center;
+    font-family: "Honk", serif;
+    text-shadow: 0 0 5px rgba(255, 204, 51, 0.7);
+    font-size: 36px;
+}
+
+.stat-item {
+    margin-bottom: 10px;
+}
+
+.stat-label {
+    font-weight: bold;
+    color: #33ccff;
+    margin-right: 5px;
+    text-shadow: 0 0 3px rgba(51, 204, 255, 0.5);
+    font-size: 18px;
+}
+
+.stat-value {
+    color: white;
+    font-size: 16px;
+}
+
+/* Quest description section */
+.quest-description {
+    background-color: rgba(33, 37, 41, 0.2);
+    backdrop-filter: blur(2px);
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quest-description h3 {
+    color: #ffcc33;
+    margin-bottom: 15px;
+    text-align: center;
+    font-family: "Honk", serif;
+    text-shadow: 0 0 5px rgba(255, 204, 51, 0.7);
+    font-size: 36px;
+}
+
+.quest-description p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+/* Media queries based on your header.css */
+@media (max-width: 768px) {
+    .character-stats, .quest-description {
+        padding: 15px;
+    }
+    
+    .character-stats h3, .quest-description h3 {
+        font-size: 24px;
+    }
+    
+    .stat-label {
+        font-size: 14px;
+        margin-right: 3px;
+    }
+    
+    .stat-value {
+        font-size: 13px;
+    }
+    
+    .quest-description p {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    
+    .row {
+        margin-left: -5px;
+        margin-right: -5px;
+    }
+    
+    .col-md-6 {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+    .character-stats h3, .quest-description h3 {
+        font-size: 30px;
+    }
+    
+    .stat-label {
+        font-size: 16px;
+    }
+    
+    .stat-value {
+        font-size: 15px;
+    }
+    
+    .quest-description p {
+        font-size: 15px;
+    }
+}

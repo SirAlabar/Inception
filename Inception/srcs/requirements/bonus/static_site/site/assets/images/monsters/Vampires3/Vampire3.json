@@ -1,0 +1,60 @@
+{"frames": {
+
+"Vampires3_Attack_full.webp":
+{
+	"frame": {"x":1,"y":1,"w":757,"h":242},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":11,"y":2,"w":757,"h":242},
+	"sourceSize": {"w":768,"h":256}
+},
+"Vampires3_Death_full.webp":
+{
+	"frame": {"x":1,"y":245,"w":687,"h":249},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":11,"y":4,"w":687,"h":249},
+	"sourceSize": {"w":704,"h":256}
+},
+"Vampires3_Hurt_full.webp":
+{
+	"frame": {"x":1124,"y":1,"w":233,"h":225},
+	"rotated": true,
+	"trimmed": true,
+	"spriteSourceSize": {"x":11,"y":15,"w":233,"h":225},
+	"sourceSize": {"w":256,"h":256}
+},
+"Vampires3_Idle_full.webp":
+{
+	"frame": {"x":1181,"y":236,"w":233,"h":225},
+	"rotated": true,
+	"trimmed": true,
+	"spriteSourceSize": {"x":11,"y":15,"w":233,"h":225},
+	"sourceSize": {"w":256,"h":256}
+},
+"Vampires3_Run_full.webp":
+{
+	"frame": {"x":690,"y":245,"w":489,"h":234},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":11,"y":6,"w":489,"h":234},
+	"sourceSize": {"w":512,"h":256}
+},
+"Vampires3_Walk_full.webp":
+{
+	"frame": {"x":760,"y":1,"w":362,"h":224},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":11,"y":16,"w":362,"h":224},
+	"sourceSize": {"w":384,"h":256}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "Vampire3.webp",
+	"format": "RGBA8888",
+	"size": {"w":1407,"h":495},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:5aa450546437ad827fbfa56316ff2e0d:b92b20693a64c9d2b2e6c6d3b3bbc519:d5240c69a15afcc96ec3e7337d468071$"
+}
+}

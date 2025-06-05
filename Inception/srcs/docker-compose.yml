@@ -118,6 +118,15 @@ services:
       - inception_network
     restart: always
 
+  static_site:
+    container_name: static_site
+    build:
+      context: ./requirements/bonus/static_site
+      dockerfile: Dockerfile
+    networks:
+      - inception_network
+    restart: always
+
 networks:
   inception_network:
     driver: bridge

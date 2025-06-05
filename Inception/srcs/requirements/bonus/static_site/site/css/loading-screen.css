@@ -1,0 +1,322 @@
+/* Loading Screen Styles */
+:root 
+{
+	--primary-color: #3366ff;
+	--secondary-color: #ff33cc;
+	--accent-color-1: #33ccff;
+	--accent-color-2: #ffcc33;
+}
+
+/* Loading Screen Base Styles */
+#loading-screen 
+{
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	background-color: #000000;
+	z-index: 9999;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
+}
+
+#loading-canvas 
+{
+	display: none; /* Not used anymore */
+}
+
+/* Loading Progress Bar */
+#loading-progress 
+{
+	position: relative;
+	width: 300px;
+	height: 10px;
+	background-color: rgba(255, 255, 255, 0.1);
+	border-radius: 8px;
+	margin-top: 20px;
+	z-index: 10000;
+	overflow: hidden;
+	box-shadow: 0 0 15px rgba(51, 102, 255, 0.3);
+	left: 50%; /* Center the progress bar */
+	transform: translateX(-50%); /* Ensure it's centered */
+}
+
+#loading-bar 
+{
+	width: 0%;
+	height: 100%;
+	background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+	border-radius: 8px;
+	transition: width 0.3s ease;
+	box-shadow: 0 0 10px rgba(51, 102, 255, 0.7);
+	position: relative;
+}
+
+/* Shimmer Effect for Loading Bar */
+#loading-bar::after 
+{
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(90deg, 
+		transparent, 
+		rgba(255, 255, 255, 0.5), 
+		transparent
+	);
+	transform: translateX(-100%);
+	animation: shimmer 1.5s infinite;
+}
+
+/* Loading Text */
+#loading-text 
+{
+	color: white;
+	font-family: "Honk", serif;
+	font-size: 2rem;
+	margin-top: 15px;
+	text-shadow: 0 0 10px rgba(51, 102, 255, 0.7);
+	z-index: 10000;
+	transition: font-size 0.5s ease;
+}
+
+/* Particles Container */
+.particles-container 
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	overflow: hidden;
+	z-index: 9998;
+}
+
+/* Particle Styling */
+.particle 
+{
+	position: absolute;
+	background: var(--primary-color);
+	border-radius: 50%;
+	box-shadow: 0 0 10px 2px rgba(51, 102, 255, 0.8);
+	pointer-events: none;
+	z-index: 9997;
+	opacity: 0;
+}
+
+/* Particle Color Variations */
+.particle:nth-child(3n) 
+{
+	background: var(--secondary-color);
+	box-shadow: 0 0 10px 2px rgba(255, 51, 204, 0.8);
+}
+
+.particle:nth-child(3n+1) 
+{
+	background: var(--accent-color-1);
+	box-shadow: 0 0 10px 2px rgba(51, 204, 255, 0.8);
+}
+
+.particle:nth-child(5n) 
+{
+	background: var(--accent-color-2);
+	box-shadow: 0 0 10px 2px rgba(255, 204, 51, 0.8);
+}
+
+/* Magic Circle */
+.magic-circle 
+{
+	position: absolute;
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	border: 2px solid var(--primary-color);
+	box-shadow: 0 0 20px rgba(51, 102, 255, 0.8);
+	opacity: 0;
+	transform: scale(0.5);
+	transition: all 0.5s ease-out;
+	z-index: 9996;
+}
+
+/* Runes Around Magic Circle */
+.magic-rune 
+{
+	position: absolute;
+	width: 30px;
+	height: 30px;
+	background: rgba(51, 102, 255, 0.2);
+	border: 1px solid rgba(51, 204, 255, 0.8);
+	box-shadow: 0 0 10px rgba(51, 102, 255, 0.6);
+	transform: translate(-50%, -50%) scale(0);
+	opacity: 0;
+	border-radius: 4px;
+	z-index: 9995;
+}
+
+.loading-complete .magic-circle 
+{
+	opacity: 0.8;
+	transform: scale(1);
+}
+
+.loading-complete .magic-circle::before,
+.loading-complete .magic-circle::after 
+{
+	content: '';
+	position: absolute;
+	border: 1px dashed rgba(51, 204, 255, 0.6);
+	border-radius: 50%;
+}
+
+.loading-complete .magic-circle::before 
+{
+	top: -10px;
+	left: -10px;
+	right: -10px;
+	bottom: -10px;
+	animation: rotateCircle 8s linear infinite;
+}
+
+.loading-complete .magic-circle::after 
+{
+	top: -20px;
+	left: -20px;
+	right: -20px;
+	bottom: -20px;
+	animation: rotateCircleReverse 12s linear infinite;
+}
+
+.loading-complete .particle 
+{
+	animation: convergeToCenter 2s forwards;
+}
+
+.loading-complete #loading-text 
+{
+	animation: pulseText 1.5s ease-in-out forwards;
+	font-size: 3rem;
+}
+
+/* Completion Flash */
+.completion-flash 
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: white;
+	opacity: 0;
+	z-index: 10001;
+	animation: flash 1s ease-out;
+}
+
+/* Keyframe Animations */
+@keyframes shimmer 
+{
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+@keyframes particleFloat 
+{
+	0% {
+		transform: translate(0, 0) scale(0.8) rotate(0deg);
+		opacity: 0;
+	}
+	20% {
+		opacity: 0.8;
+	}
+	80% {
+		opacity: 0.8;
+	}
+	100% {
+		transform: translate(var(--end-x, 100px), var(--end-y, -100px)) scale(1.2) rotate(360deg);
+		opacity: 0;
+	}
+}
+
+@keyframes runeAppear 
+{
+	0% {
+		transform: translate(-50%, -50%) scale(0) rotate(0deg);
+		opacity: 0;
+	}
+	100% {
+		transform: translate(-50%, -50%) scale(1) rotate(45deg);
+		opacity: 1;
+	}
+}
+
+@keyframes rotateCircle 
+{
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+@keyframes rotateCircleReverse 
+{
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(-360deg); }
+}
+
+@keyframes convergeToCenter 
+{
+	0% {
+		opacity: 0.8;
+	}
+	80% {
+		opacity: 0.8;
+		transform: scale(1.2);
+	}
+	100% {
+		transform: translate(calc(50vw - 100%), calc(50vh - 100%)) scale(0);
+		opacity: 0;
+	}
+}
+
+@keyframes pulseText 
+{
+	0% { transform: scale(1); }
+	50% { transform: scale(1.2); }
+	100% { transform: scale(1); }
+}
+
+@keyframes flash 
+{
+	0% { opacity: 0; }
+	20% { opacity: 0.8; }
+	100% { opacity: 0; }
+}
+
+
+.main-content 
+{
+	opacity: 0;
+	transition: opacity 1s ease;
+}
+
+#loading-screen.fade-out 
+{
+	opacity: 0;
+	transition: opacity 1s ease;
+}
+
+.glow 
+{
+	animation: glow 2s infinite ease-in-out;
+}
+
+@keyframes glow 
+{
+	0% { filter: brightness(1); }
+	50% { filter: brightness(1.5); }
+	100% { filter: brightness(1); }
+}

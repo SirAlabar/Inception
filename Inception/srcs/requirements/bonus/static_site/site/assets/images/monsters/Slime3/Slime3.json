@@ -1,0 +1,60 @@
+{"frames": {
+
+"Slime3_Attack_full.webp":
+{
+	"frame": {"x":1,"y":233,"w":547,"h":247},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":21,"y":0,"w":547,"h":247},
+	"sourceSize": {"w":576,"h":256}
+},
+"Slime3_Death_full.webp":
+{
+	"frame": {"x":1,"y":1,"w":608,"h":230},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":23,"y":5,"w":608,"h":230},
+	"sourceSize": {"w":640,"h":256}
+},
+"Slime3_Hurt_full.webp":
+{
+	"frame": {"x":1087,"y":1,"w":280,"h":224},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":21,"y":11,"w":280,"h":224},
+	"sourceSize": {"w":320,"h":256}
+},
+"Slime3_Idle_full.webp":
+{
+	"frame": {"x":1024,"y":235,"w":343,"h":229},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":20,"y":6,"w":343,"h":229},
+	"sourceSize": {"w":384,"h":256}
+},
+"Slime3_Run_full.webp":
+{
+	"frame": {"x":550,"y":235,"w":472,"h":235},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":22,"y":0,"w":472,"h":235},
+	"sourceSize": {"w":512,"h":256}
+},
+"Slime3_Walk_full.webp":
+{
+	"frame": {"x":611,"y":1,"w":474,"h":232},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":20,"y":3,"w":474,"h":232},
+	"sourceSize": {"w":512,"h":256}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "Slime3.webp",
+	"format": "RGBA8888",
+	"size": {"w":1368,"h":481},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:f0742a2b7daec97017b75d4606ff5b8b:b54309106e36a2c5a9628f3a66e8c428:d58ba46e6f9e003d484fe123dbed64a0$"
+}
+}

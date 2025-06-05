@@ -1,0 +1,44 @@
+/* Estilos para a página 404 */
+.error-container {
+    text-align: center;
+    padding: 40px 20px;
+    margin: 0 auto;
+    background-color: rgba(0, 0, 0, 0.637);
+    border-radius: 10px;
+    color: white;
+}
+
+.error-title {
+    font-size: 42px;
+    color: #ff3366;
+    margin-bottom: 10px;
+    font-family: "Honk", serif;
+}
+
+.pixel-art-404 {
+    font-size: 100px;
+    font-family: 'Courier New', monospace;
+    color: #ff3366;
+    text-shadow: 0 0 15px #ff3366;
+    margin: 20px 0;
+}
+
+.error-message {
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.btn-home {
+    display: inline-block;
+    background-color: #3366ff;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-home:hover {
+    background-color: #ff3366;
+    transform: scale(1.05);
+}

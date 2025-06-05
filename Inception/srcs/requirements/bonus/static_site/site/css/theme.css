@@ -1,0 +1,52 @@
+/* Theme variables */
+:root 
+{
+	/* Color variables only - images now handled by PIXI */
+	--bg-color-light: #87CEEB; /* Sky blue for light theme */
+	--bg-color-dark: #191970; /* Midnight blue for dark theme */
+	--scene-height: 200vh;
+}
+
+.scene 
+{
+	position: absolute;
+	top: 0;
+	left: 0;    
+	width: 100%;
+	height: var(--scene-height);
+	margin: 0;
+	padding: 0;
+	overflow: visible;
+	overflow-x: hidden;
+	transform-style: preserve-3d;
+	background-color: transparent;
+}
+
+
+/* Dark theme */
+body[data-theme="dark"] header 
+{
+	color: rgb(0, 183, 255);
+}
+
+body[data-theme="dark"] h1 
+{
+	color: rgb(255, 60, 60);
+}
+
+body[data-theme="dark"] h6 
+{
+	color: rgb(126, 255, 182);
+}
+
+@keyframes floatUp 
+{
+	0% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(-50px);
+		opacity: 0;
+	}
+}

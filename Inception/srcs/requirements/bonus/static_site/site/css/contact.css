@@ -1,0 +1,125 @@
+/* contact.css - Styles for the Contact page */
+
+/* Contact content container */
+.contact-content {
+    color: white;
+}
+
+/* Contact header */
+.contact-content h2 {
+    color: #ffcc33;
+    margin-bottom: 25px;
+    text-align: center;
+    font-family: "Honk", serif;
+    text-shadow: 0 0 5px rgba(255, 204, 51, 0.7);
+    font-size: 40px;
+}
+
+/* Contact info section */
+.contact-info {
+    background-color: rgba(33, 37, 41, 0.2);
+    backdrop-filter: blur(2px);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.contact-info h3 {
+    color: #ffcc33;
+    margin-bottom: 15px;
+    text-align: center;
+    font-family: "Honk", serif;
+    text-shadow: 0 0 5px rgba(255, 204, 51, 0.7);
+    font-size: 36px;
+}
+
+/* Contact items */
+.contact-info h5 {
+    color: #0011f8;
+    margin-bottom: 5px;
+    text-shadow: 0 0 3px rgba(51, 204, 255, 0.5);
+    font-size: 18px;
+}
+
+.contact-info p {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+/* Links styling */
+.contact-info a {
+    color: #0278a0;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contact-info a:hover {
+    color: #ffcc33;
+    text-decoration: underline;
+}
+
+/* Icons */
+.contact-info i {
+    color: #ffcc33;
+    font-size: 1.5rem;
+    margin-right: 15px;
+}
+
+/* Media queries based on your header.css */
+@media (max-width: 768px) {
+    .contact-info {
+        padding: 15px;
+    }
+    
+    .contact-content h2 {
+        font-size: 28px;
+    }
+    
+    .contact-info h3 {
+        font-size: 24px;
+    }
+    
+    .contact-info h5 {
+        font-size: 14px;
+    }
+    
+    .contact-info p {
+        font-size: 13px;
+    }
+    
+    .contact-info i {
+        font-size: 1.2rem;
+        margin-right: 10px;
+    }
+    
+    .row {
+        margin-left: -5px;
+        margin-right: -5px;
+    }
+    
+    .col-md-6 {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+    .contact-content h2 {
+        font-size: 34px;
+    }
+    
+    .contact-info h3 {
+        font-size: 30px;
+    }
+    
+    .contact-info h5 {
+        font-size: 16px;
+    }
+    
+    .contact-info p {
+        font-size: 15px;
+    }
+    
+    .contact-info i {
+        font-size: 1.3rem;
+    }
+}
