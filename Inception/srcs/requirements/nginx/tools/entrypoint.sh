@@ -10,9 +10,6 @@ fi
 # Run SSL setup script
 /usr/local/bin/ssl_setup.sh
 
-# Add Adminer to hosts file
-echo "172.18.0.5 adminer" >> /etc/hosts
-
 # Replace environment variavles in the nginx configuraton
 envsubst '${DOMAIN_NAME}' < /etc/nginx/http.d/default.conf.template > /etc/nginx/http.d/default.conf
 
